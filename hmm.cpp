@@ -38,7 +38,9 @@ private:
 
 int main ()
 {
-  hmm hmm1("trainingSequence.txt");
+  hmm hmm1("pu27.clustalw");
+  //hmm hmm1("clustalw.txt");
+  //hmm hmm1("trainingSequence.txt");
   //cout<<hmm1.baseCounts.block(0,0,hmm1.numBases,hmm1.lengthSequence)<<'\n'<<'\n';
   //cout<<hmm1.matchEmissionProbs.block(0,0,hmm1.numBases,16)<<'\n'<<'\n';
   //cout<<hmm1.insertEmissionProbs.block(0,0,hmm1.numBases,16)<<'\n'<<'\n';
@@ -51,7 +53,7 @@ hmm::hmm(const char* fileName){
   getData(fileName);
   numSequences = sequences.size();
   lengthSequence = sequences[0].size();
-  getState();
+   getState();
   numMatchStates=state.sum();
   getMatchIndices();
   numBases = 4;
@@ -65,23 +67,46 @@ hmm::hmm(const char* fileName){
 void hmm::getData (const char* fileName) {
   ifstream myfile (fileName);
   string line;
-  vector<string> list;
-  int linesize=0;
-  if (myfile.is_open())
+  getline (myfile,line); //Skip the CLUSTAL W header line
+  while ( getline (myfile,line) )
     {
-      while ( getline (myfile,line) )
+      if(line.length()!=0 && isalnum(line.at(0)))
+	{
+	  //cout<<line.at(0)<<'\n';
+	  sequences.push_back("");
+	}
+      else if(line.length()!=0)
+	{
+	  break;
+	}
+    }
+  myfile.close();
+  myfile.open(fileName);
+  getline (myfile,line); //Skip the CLUSTAL W header line
+  int ii=0;
+  while ( getline (myfile,line) )
+    {
+      //cout<<line<<'\n';
+      if(line.length()!=0 && isalnum(line.at(0)))
 	{
 	  line.erase(0,line.find(' '));
 	  line.erase(0,line.find_first_not_of(' '));
-	  list.push_back(line);
-	  if(linesize==0){linesize=line.size();}
-	  else if(linesize!=line.size()){cout<<"Unequal Sequence Lengths"<<'\n';}
-	  //cout << list.size() << '\n'<< line.size() << '\n';
+	  if(isdigit(line.at(line.length()-1)))
+	    {
+	      line.erase(line.find(' '), line.length()-1);
+	    }
+	  cout<<line<<'\n'<<line.length()<<'\n';
+	  sequences.at(ii).append(line);
+	  ++ii;
 	}
-      myfile.close();
-      sequences=list;
+      else if(line.length()!=0)
+	{
+	  ii=0;
+	  //cout<<line[0]<<'\n';
+	}
     }
-  else cout << "Unable to open file\n"; 
+  cout<<sequences.at(1)<<'\n'<<sequences.at(1).length()<<'\n';
+  myfile.close(); 
 }
 
 // Count the bases in each column and determine if its a match or insertion state. 1 match state, 0 insertion state
